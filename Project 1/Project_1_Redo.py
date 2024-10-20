@@ -27,14 +27,14 @@ from sklearn.metrics import accuracy_score,precision_score, f1_score
 from sklearn.tree import DecisionTreeClassifier
 import joblib
 
-"""Step 1 Data-Processing"""
+"""Step 2.1 Data-Processing"""
 
 # reading the file as a csv file and converting to a data frame
 df = pd.read_csv(r"C:\Users\gshar\OneDrive - Toronto Metropolitan University (RU)\Documents\GitHub\Gandhrav-s_AER850_Project\Project 1\Project_1_Data.csv");
 print(df.head())
 
 
-"""Step 2 Raw Data-visualization"""
+"""Step 2.2 Raw Data-visualization"""
 
 # Creating the figure 
 fig = plt.figure();
@@ -56,7 +56,7 @@ print(df.describe()); # summary of statistics presents the mean, std dev etc of 
 # 2.3 Step 3: Correlation Analysis - 15 Marks
 # Assess the correlation of the features with the target variable.
 
-"""Step 3 Correlation Analysis"""
+"""Step 2.3 Correlation Analysis"""
 correlation_matrix = df.corr(); # calculating the correlation variables 
 plt.figure(figsize=(15,8));  # creates a larger size for the heatmap
 print(correlation_matrix);
@@ -67,7 +67,7 @@ plt.title("Pearson Correlation Matrix");
 
 # 2.4 Step 4: Classification Model Development/Engineering - 20 Marks
 
-"""Step 4 Classification Model"""
+"""Step 2. 4 Classification Model"""
 
 # first I need to identify my x and y variables
 
@@ -77,8 +77,6 @@ target = df['Step']; # these are the target
 # splitting the data set into train and test using the 80-20 split convention and stratifying the samples
 X_train, X_test, y_train, y_test = train_test_split(coord,target,random_state = 42, test_size = 0.2,stratify=target);
 
-
-"""Random Forest testing"""
 
 
 # 1 Random Forest hyperParameters
@@ -95,7 +93,7 @@ param_grid_rf = {
 }
 
 # Perform a grid search with k-fold cross-validation 
-grid_search_rf = GridSearchCV(rf, param_grid_rf, cv=10, scoring='accuracy', n_jobs=-1) 
+grid_search_rf = GridSearchCV(rf, param_grid_rf, cv=10, scoring='accuracy', n_jobs=-1)  # n_jobs mean all cpus on pc are used
 grid_search_rf.fit(X_train, y_train)  # Fit the model on training data
 best_model_rf = grid_search_rf.best_estimator_   # Get the best model from grid search
 print("\n Best Random Forest parameters are:", best_model_rf)
@@ -143,8 +141,8 @@ best_model_dt = random_search_dt.best_estimator_
 print("Best Decision Tree Model:", best_model_dt)
 
 
-###############################################################################
-"""Model Performance Analysis"""
+
+"""Step 2.5 Model Performance Analysis"""
 
 
 
@@ -225,7 +223,7 @@ disp.plot(cmap='viridis')
 plt.show()  # show the confusion matrix
 
 
-""" model stacking  """
+""" Step 2.6 Model Stacking  """
 
 
 # Define estimators for stacking
@@ -264,7 +262,7 @@ plt.show()
 
 
 
-"""Last step"""
+""" Step 2.7 Model Evaluation"""
 
 # Save and Load the SVM model using joblib
 
