@@ -9,6 +9,7 @@ Created on Sat Oct 12 18:23:16 2024
 # Read data from a csv file and convert that into a dataframe, which will allow for all further
 # analysis and data manipulation. # Package(s) required: Pandas
 
+# importing all the libraries for the project
 import pandas as pd;
 import numpy as np;
 import matplotlib.pyplot as plt;
@@ -28,6 +29,7 @@ import joblib
 
 """Step 1 Data-Processing"""
 
+# reading the file as a csv file and converting to a data frame
 df = pd.read_csv(r"C:\Users\gshar\OneDrive - Toronto Metropolitan University (RU)\Documents\GitHub\Gandhrav-s_AER850_Project\Project 1\Project_1_Data.csv");
 print(df.head())
 
@@ -37,23 +39,26 @@ print(df.head())
 # Creating the figure 
 fig = plt.figure();
 ax = fig.add_subplot(111,projection='3d'); # 1 row 1 column 1 subplot
-ax.view_init(30, 185)
-print(type(ax));# describing 3D subplot
+print(type(ax));# describing 3D subplot 
+
+# setting the 3D scatter plot's labels
 
 ax.scatter3D(df['X'],df['Y'],df['Z']);
-ax.set_xlabel('x');
-ax.set_ylabel('y');
-ax.set_zlabel('z');
-# ax.view_init(35,185); # (elevation angle, azimuth angle in deg)
+ax.set_xlabel('x'); # x label
+ax.set_ylabel('y'); # y label
+ax.set_zlabel('z'); # z label
+ax.view_init(35,185); # (elevation angle, azimuth angle in deg)
+
+#extra histogram
 two_d = df.hist();
-print(df.describe());
+print(df.describe()); # summary of statistics presents the mean, std dev etc of the model
 
 # 2.3 Step 3: Correlation Analysis - 15 Marks
 # Assess the correlation of the features with the target variable.
 
 """Step 3 Correlation Analysis"""
 correlation_matrix = df.corr(); # calculating the correlation variables 
-plt.figure(figsize=(15,8));
+plt.figure(figsize=(15,8));  # creates a larger size for the heatmap
 print(correlation_matrix);
 sns.heatmap(correlation_matrix,cmap='BuPu',vmin = -1, vmax =1,annot=True,square = True, annot_kws={'fontsize':11, 'fontweight':'bold'}); # passed a dictionary for annot_kws
 plt.title("Pearson Correlation Matrix");
@@ -66,15 +71,11 @@ plt.title("Pearson Correlation Matrix");
 
 # first I need to identify my x and y variables
 
-coord =df[['X','Y','Z']];       
-target = df['Step'];
+coord =df[['X','Y','Z']] # these are the features
+target = df['Step']; # these are the target
 
-X_train, X_test, y_train, y_test = train_test_split(coord,target,random_state = 42, test_size = 0.2,stratify=target); # making stratified split
-
-
-print(y_train.value_counts(normalize=True)*100)  # counts the occurrences of each class in percent for train model
-
-print(y_test.value_counts(normalize=True)*100)  # counts the occurrences of each class in percent for test model
+# splitting the data set into train and test using the 80-20 split convention and stratifying the samples
+X_train, X_test, y_train, y_test = train_test_split(coord,target,random_state = 42, test_size = 0.2,stratify=target);
 
 
 """Random Forest testing"""
@@ -82,8 +83,9 @@ print(y_test.value_counts(normalize=True)*100)  # counts the occurrences of each
 
 # 1 Random Forest hyperParameters
 
-rf = RandomForestClassifier(random_state=42)
+rf = RandomForestClassifier(random_state=42) 
 
+# Define a grid of hyperparameters for tuning the Random Forest model
 param_grid_rf = {
     'n_estimators': [10, 30, 50],
     'max_depth': [None, 10, 20, 30],
@@ -91,10 +93,12 @@ param_grid_rf = {
     'min_samples_leaf': [1, 2, 4],
     'max_features': ['sqrt', 'log2']
 }
-grid_search_rf = GridSearchCV(rf, param_grid_rf, cv=5, scoring='accuracy', n_jobs=-1)
-grid_search_rf.fit(X_train, y_train)
-best_model_rf = grid_search_rf.best_estimator_
-print("Best Random Forest Model:", best_model_rf)
+
+# Perform a grid search with k-fold cross-validation 
+grid_search_rf = GridSearchCV(rf, param_grid_rf, cv=10, scoring='accuracy', n_jobs=-1) 
+grid_search_rf.fit(X_train, y_train)  # Fit the model on training data
+best_model_rf = grid_search_rf.best_estimator_   # Get the best model from grid search
+print("\n Best Random Forest parameters are:", best_model_rf)
 
 
 
@@ -223,15 +227,18 @@ plt.show()
 
 """ model stacking  """
 
+
+# Define estimators for stacking
 estimators = [
     ('lr', logistic_model), 
     ('Rf',best_model_rf),]
 
-final_estimator = DecisionTreeClassifier(random_state=42)
+# Final estimator (SVM) for stacking
+final_estimator = best_model_svm
 sc = StackingClassifier(estimators = estimators, 
-                       final_estimator= final_estimator)
+                        final_estimator= final_estimator)
 
-
+# Train stacking model
 sc.fit(X_train,y_train)
 
 # predict model
@@ -243,6 +250,7 @@ accuracy = accuracy_score(y_test, y_sc_pred)
 precision = precision_score(y_test, y_sc_pred, average = 'weighted')
 f1 = f1_score(y_test, y_sc_pred, average = 'weighted')
 
+# Output stacking model metrics
 print(f"stacking model accuracy: {accuracy}")
 print(f"stacking model Precision: {precision}")
 print(f"stacking model F1 Score: {f1}")
@@ -258,6 +266,7 @@ plt.show()
 
 """Last step"""
 
+# Save and Load the SVM model using joblib
 
 joblib.dump(best_model_svm,'svm_job.joblib') # save the model under joblib format in new file called svm_job
 loaded_svm_job=joblib.load('svm_job.joblib') # loading it to return your model object used to make predictions
@@ -271,7 +280,7 @@ coords_to_predict = np.array([[9.375, 3.0625, 1.51],
 
 coords_to_predict_df = pd.DataFrame(coords_to_predict,columns =['X','Y','Z']) # converting numpy to pandas df
 
-mj = loaded_svm_job.predict(coords_to_predict_df)
+mj = loaded_svm_job.predict(coords_to_predict_df)  # Predictions for new data
 
 print(mj)
 
