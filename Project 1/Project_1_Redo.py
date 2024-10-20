@@ -222,7 +222,7 @@ class_labels = best_model_dt.classes_  # extracting the labels from the trained 
 disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix_dt,display_labels=class_labels)
 disp.plot(cmap='viridis')
 
-plt.show()
+plt.show()  # show the confusion matrix
 
 
 """ model stacking  """
